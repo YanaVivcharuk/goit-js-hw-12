@@ -1,4 +1,11 @@
-import { renderImages, clearGallery } from './js/render-functions';
+import {
+  renderImages,
+  clearGallery,
+  showLoader,
+  hideLoader,
+  showLoadMoreBtn,
+  hideLoadMoreBtn,
+} from './js/render-functions';
 import { fetchImages } from './js/pixabay-api';
 
 import iziToast from 'izitoast';
@@ -6,14 +13,12 @@ import 'izitoast/dist/css/iziToast.min.css';
 
 const form = document.querySelector(`form`);
 const gallery = document.querySelector(`.gallery`);
-const loader = document.querySelector(`.loader`);
-const loadMoreBtn = document.querySelector(`.load-more`);
 
 let currentQuery = '';
 let currentPage = 1;
 const perPage = 15;
 
-loadMoreBtn.classList.add(`visually-hidden`);
+hideLoadMoreBtn();
 
 form.addEventListener(`submit`, async event => {
   event.preventDefault();
@@ -27,8 +32,8 @@ form.addEventListener(`submit`, async event => {
   }
 
   clearGallery();
-  loadMoreBtn.classList.add('visually-hidden');
-  loader.classList.remove('visually-hidden');
+  hideLoadMoreBtn();
+  showLoader();
 
   try {
     const response = await fetchImages(currentQuery, currentPage);
@@ -40,7 +45,7 @@ form.addEventListener(`submit`, async event => {
     } else {
       renderImages(response.hits);
       if (response.totalHits > perPage) {
-        loadMoreBtn.classList.remove('visually-hidden');
+        showLoadMoreBtn();
       }
     }
   } catch (error) {
@@ -49,12 +54,13 @@ form.addEventListener(`submit`, async event => {
       message: 'Failed to fetch images. Try again later!',
     });
   } finally {
-    loader.classList.add('visually-hidden');
+    hideLoader();
   }
 });
-loadMoreBtn.addEventListener('click', async () => {
+
+document.querySelector('.load-more').addEventListener('click', async () => {
   currentPage++;
-  loader.classList.remove('visually-hidden');
+  showLoader();
 
   try {
     const response = await fetchImages(currentQuery, currentPage);
@@ -62,7 +68,7 @@ loadMoreBtn.addEventListener('click', async () => {
     smoothScroll();
 
     if (currentPage * perPage >= response.totalHits) {
-      loadMoreBtn.classList.add('visually-hidden');
+      hideLoadMoreBtn();
       iziToast.info({
         title: 'Info',
         message: "You've reached the end of search results.",
@@ -74,9 +80,10 @@ loadMoreBtn.addEventListener('click', async () => {
       message: 'Failed to load more images. Try again later!',
     });
   } finally {
-    loader.classList.add('visually-hidden');
+    hideLoader();
   }
 });
+
 function smoothScroll() {
   const { height: cardHeight } = document
     .querySelector('.gallery')
