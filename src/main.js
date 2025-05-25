@@ -19,6 +19,7 @@ let currentPage = 1;
 const perPage = 15;
 
 hideLoadMoreBtn();
+hideLoader();
 
 form.addEventListener(`submit`, async event => {
   event.preventDefault();
